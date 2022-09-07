@@ -2,6 +2,7 @@ package org.example.conrtollers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.entities.Customers;
+import org.example.entities.ErrorMessage;
 import org.example.entities.Products;
 import org.example.entities.Purchases;
 import org.example.repos.CustomersRepos;
@@ -70,17 +71,9 @@ public class SearchController {
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.writeValue(new FileWriter((args[2] != null)? args[2]: "output.json"), title);
         } catch (FileNotFoundException e) {
-            Map<String, String> error = new LinkedHashMap<>();
-            error.put("type", "error");
-            error.put("message", "Файл не найден");
-            ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.writeValue(new FileWriter((args[2] != null)? args[2]: "output.json"), error);
+            new ErrorMessage("error", "Файл не найден", args[2]);
         } catch (ParseException e) {
-            Map<String, String> error = new LinkedHashMap<>();
-            error.put("type", "error");
-            error.put("message", "Неправильный формат файла");
-            ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.writeValue(new FileWriter((args[2] != null)? args[2]: "output.json"), error);
+            new ErrorMessage("error", "Неправильный формат файла", args[2]);
         }
     }
 
