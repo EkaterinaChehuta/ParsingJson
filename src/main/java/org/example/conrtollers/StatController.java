@@ -45,25 +45,25 @@ public class StatController {
             result.put("customers", (customers == null) ? "" : customers);
             result.put("totalExpenses", totalExpenses);
             ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.writeValue(new FileWriter(args[2]), result);
+            objectMapper.writeValue(new FileWriter((args[2] != null)? args[2]: "output.json"), result);
         } catch (FileNotFoundException e) {
             Map<String, String> error = new LinkedHashMap<>();
             error.put("type", "error");
             error.put("message", "Файл не найден");
             ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.writeValue(new FileWriter(args[2]), error);
+            objectMapper.writeValue(new FileWriter((args[2] != null)? args[2]: "output.json"), error);
         } catch (ParseException e) {
             Map<String, String> error = new LinkedHashMap<>();
             error.put("type", "error");
             error.put("message", "Неправильный формат файла");
             ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.writeValue(new FileWriter(args[2]), error);
+            objectMapper.writeValue(new FileWriter((args[2] != null)? args[2]: "output.json"), error);
         } catch (java.text.ParseException e) {
             Map<String, String> error = new LinkedHashMap<>();
             error.put("type", "error");
             error.put("message", "Неправильный формат даты");
             ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.writeValue(new FileWriter(args[2]), error);
+            objectMapper.writeValue(new FileWriter((args[2] != null)? args[2]: "output.json"), error);
         }
     }
 

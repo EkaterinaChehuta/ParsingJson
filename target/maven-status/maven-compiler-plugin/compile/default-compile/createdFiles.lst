@@ -1,9 +1,0 @@
-org/example/entities/Products.class
-org/example/conrtollers/SearchController.class
-org/example/conrtollers/StatController.class
-org/example/repos/PurchasesRepos.class
-org/example/MyApplication.class
-org/example/repos/ProductsRepos.class
-org/example/entities/Customers.class
-org/example/entities/Purchases.class
-org/example/repos/CustomersRepos.class

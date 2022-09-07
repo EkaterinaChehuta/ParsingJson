@@ -68,19 +68,19 @@ public class SearchController {
             title.put("type", "search");
             title.put("result", result);
             ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.writeValue(new FileWriter(args[2]), title);
+            objectMapper.writeValue(new FileWriter((args[2] != null)? args[2]: "output.json"), title);
         } catch (FileNotFoundException e) {
             Map<String, String> error = new LinkedHashMap<>();
             error.put("type", "error");
             error.put("message", "Файл не найден");
             ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.writeValue(new FileWriter(args[2]), error);
+            objectMapper.writeValue(new FileWriter((args[2] != null)? args[2]: "output.json"), error);
         } catch (ParseException e) {
             Map<String, String> error = new LinkedHashMap<>();
             error.put("type", "error");
             error.put("message", "Неправильный формат файла");
             ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.writeValue(new FileWriter(args[2]), error);
+            objectMapper.writeValue(new FileWriter((args[2] != null)? args[2]: "output.json"), error);
         }
     }
 
