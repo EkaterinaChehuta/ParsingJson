@@ -12,6 +12,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -36,7 +37,6 @@ public class SearchController {
             JSONObject jsonObject = (JSONObject) jsonParser.parse(reader);
             JSONArray jsonArray = (JSONArray) jsonObject.get("criteria");
 
-            FileWriter writer = new FileWriter(args[2]);
             List<Object> result = new LinkedList<>();
 
             for (Object o : jsonArray) {
@@ -64,12 +64,23 @@ public class SearchController {
                 }
             }
 
+            Map<String, Object> title = new LinkedHashMap<>();
+            title.put("type", "search");
+            title.put("result", result);
             ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.writeValue(writer, result);
-        } catch (IOException e) { // написать свой класс ошибки в формате json
-            e.printStackTrace();
+            objectMapper.writeValue(new FileWriter(args[2]), title);
+        } catch (FileNotFoundException e) {
+            Map<String, String> error = new LinkedHashMap<>();
+            error.put("type", "error");
+            error.put("message", "Файл не найден");
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.writeValue(new FileWriter(args[2]), error);
         } catch (ParseException e) {
-            throw new RuntimeException(e);
+            Map<String, String> error = new LinkedHashMap<>();
+            error.put("type", "error");
+            error.put("message", "Неправильный формат файла");
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.writeValue(new FileWriter(args[2]), error);
         }
     }
 
@@ -77,28 +88,42 @@ public class SearchController {
         Map<String, Object> map = new LinkedHashMap<>();
         map.put("criteria", innerObj);
         List<Customers> customersList = customersRepos.findByLastName(innerObj.get("lastName").toString());
-        map.put("result", customersList);
+        if (customersList == null) {
+            map.put("result", "");
+        } else {
+            map.put("result", customersList);
+        }
         return map;
     }
 
     private Map<String, Object> saveByProductNameEndCount(JSONObject innerObj) throws IOException {
-        Map<String, Object> map = new LinkedHashMap<>();
-        map.put("criteria", innerObj);
-        List<Purchases> purchasesList = purchasesRepos.findByProduct(
-                productsRepos.findByProductName(innerObj.get("productName").toString()));
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("criteria", innerObj);
 
-        Map<Customers, List<Purchases>> map1 = purchasesList.stream()
-                .collect(Collectors.groupingBy(Purchases::getCustomer));
+        Products product = productsRepos.findByProductName(innerObj.get("productName").toString());
 
-        int count = Integer.parseInt(innerObj.get("minTimes").toString());
+        if (product == null) {
+            result.put("result", "");
+        } else {
+            List<Purchases> purchasesList = purchasesRepos.findByProduct(product);
 
-        List<Customers> customersList = map1.entrySet().parallelStream()
-                .filter(e -> e.getValue().size() >= count)
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toList());
+            if (purchasesList == null) {
+                result.put("result", "");
+            } else {
+                Map<Customers, List<Purchases>> map = purchasesList.stream()
+                        .collect(Collectors.groupingBy(Purchases::getCustomer));
 
-        map.put("result", customersList);
-        return map;
+                int count = Integer.parseInt(innerObj.get("minTimes").toString());
+
+                List<Customers> customersList = map.entrySet().parallelStream()
+                        .filter(e -> e.getValue().size() >= count)
+                        .map(Map.Entry::getKey)
+                        .collect(Collectors.toList());
+
+                result.put("result", customersList);
+            }
+        }
+        return result;
     }
 
     private Map<String, Object> saveFromRange(JSONObject innerObj) {
@@ -107,21 +132,25 @@ public class SearchController {
 
         List<Purchases> purchasesList = purchasesRepos.findAll();
 
-        Map<Customers, List<Products>> mapCustomers = purchasesList.stream()
-                .collect(Collectors.groupingBy(Purchases::getCustomer,
-                        Collectors.mapping(Purchases::getProduct, Collectors.toList())));
+        if (purchasesList == null) {
+            map.put("result", "");
+        } else {
+            Map<Customers, List<Products>> mapCustomers = purchasesList.stream()
+                    .collect(Collectors.groupingBy(Purchases::getCustomer,
+                            Collectors.mapping(Purchases::getProduct, Collectors.toList())));
 
-        List<Customers> customersList = mapCustomers.entrySet().parallelStream()
-                .filter(e -> e.getValue().stream()
-                        .mapToDouble(Products::getPrice)
-                        .sum() >= Integer.parseInt(innerObj.get("minExpenses").toString()) &&
-                        e.getValue().stream()
-                                .mapToDouble(Products::getPrice)
-                                .sum() <= Integer.parseInt(innerObj.get("maxExpenses").toString()))
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toList());
+            List<Customers> customersList = mapCustomers.entrySet().parallelStream()
+                    .filter(e -> e.getValue().stream()
+                            .mapToDouble(Products::getPrice)
+                            .sum() >= Integer.parseInt(innerObj.get("minExpenses").toString()) &&
+                            e.getValue().stream()
+                                    .mapToDouble(Products::getPrice)
+                                    .sum() <= Integer.parseInt(innerObj.get("maxExpenses").toString()))
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toList());
 
-        map.put("result", customersList);
+            map.put("result", customersList);
+        }
         return map;
     }
 
@@ -131,18 +160,22 @@ public class SearchController {
 
         List<Purchases> purchases = purchasesRepos.findAll();
 
-        Map<Customers, List<Products>> mapCustomers = purchases.stream()
-                .collect(Collectors.groupingBy(Purchases::getCustomer,
-                        Collectors.mapping(Purchases::getProduct, Collectors.toList())));
+        if (purchases == null) {
+            map.put("result", "");
+        } else {
+            Map<Customers, List<Products>> mapCustomers = purchases.stream()
+                    .collect(Collectors.groupingBy(Purchases::getCustomer,
+                            Collectors.mapping(Purchases::getProduct, Collectors.toList())));
 
-        List<Customers> customersList = mapCustomers.entrySet().parallelStream()
-                .sorted(Comparator.comparing(e -> e.getValue().stream()
-                        .mapToDouble(Products::getPrice).sum()))
-                .map(Map.Entry::getKey)
-                .limit(Integer.parseInt(innerObj.get("badCustomers").toString()))
-                .collect(Collectors.toList());
+            List<Customers> customersList = mapCustomers.entrySet().parallelStream()
+                    .sorted(Comparator.comparing(e -> e.getValue().stream()
+                            .mapToDouble(Products::getPrice).sum()))
+                    .map(Map.Entry::getKey)
+                    .limit(Integer.parseInt(innerObj.get("badCustomers").toString()))
+                    .collect(Collectors.toList());
 
-        map.put("result", customersList);
+            map.put("result", customersList);
+        }
         return map;
     }
 }

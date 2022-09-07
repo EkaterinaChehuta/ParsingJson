@@ -1,6 +1,7 @@
 package org.example;
 
 import org.example.conrtollers.SearchController;
+import org.example.conrtollers.StatController;
 import org.example.repos.CustomersRepos;
 import org.example.repos.ProductsRepos;
 import org.example.repos.PurchasesRepos;
@@ -26,7 +27,8 @@ public class MyApplication {
                 SearchController search = new SearchController(customersRepos, productsRepos, purchasesRepos);
                 search.run(args);
             } else if (Objects.equals(args[0], "stat")) {
-
+                StatController stat = new StatController(purchasesRepos);
+                stat.run(args);
             }
         };
     }

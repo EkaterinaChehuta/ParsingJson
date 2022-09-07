@@ -4,9 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
-import java.time.LocalDate;
+import java.util.Date;
 
 @Entity
 @Table(name = "purchases")
@@ -32,5 +33,6 @@ public class Purchases {
     @Column(name = "value_date")
     @Getter
     @Setter
-    private LocalDate date;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    private Date date;
 }
