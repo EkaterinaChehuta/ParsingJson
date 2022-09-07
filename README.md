@@ -8,10 +8,10 @@
 ### Сборка:
 >mvn clean package
 ---
-### Запустить и тестирование:
+### Запуск и тестирование:
 ___
 >java -jar test.jar <параметр> <input.json> <output.json>
 
 параметр - search / stat \
-input.json - можно скачать по адресу /src/main/resources/test
+input.json - можно найти по адресу /src/main/resources/test
 ___
